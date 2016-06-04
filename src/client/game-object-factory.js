@@ -8,7 +8,7 @@ let PIXI = window.PIXI
 
 /**
  * Class to generate Entities with the appropriate components
- * @class
+ * @class GameObjectFactory
  */
 class GameObjectFactory {
   /**

@@ -8,7 +8,7 @@ let renderer = require('./renderer')
 
 /**
  * Class for handling rendering of entities
- * @class
+ * @class RenderSystem
  * @extends System
  */
 class RenderSystem extends System {

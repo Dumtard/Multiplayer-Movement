@@ -2,7 +2,7 @@ let System = require('./system')
 
 /**
  * Class for handling gravity on entities
- * @class
+ * @class GravitySystem
  * @extends System
  */
 class GravitySystem extends System {

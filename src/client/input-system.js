@@ -12,7 +12,7 @@ window.addEventListener('keyup', (event) => {
 
 /**
  * Class for handling input on entities
- * @class
+ * @class GameObjectFactory
  * @extends System
  */
 class InputSystem extends System {

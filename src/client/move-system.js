@@ -2,7 +2,7 @@ let System = require('./system')
 
 /**
  * Class for handling movement of entities
- * @class
+ * @class MoveSystem
  * @extends System
  */
 class MoveSystem extends System {

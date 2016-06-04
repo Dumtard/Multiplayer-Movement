@@ -30,7 +30,7 @@ let entity2proxy = {}
  * Class to manage entities. All entities should be created and removed through
  * this interface. Will manage the list and give the appropriate entities to the
  * systems that use them.
- * @class
+ * @class EntityManager
  */
 class EntityManager {
   /**

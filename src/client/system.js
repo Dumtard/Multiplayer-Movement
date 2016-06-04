@@ -2,7 +2,7 @@ let EventEmitter = require('./event-emitter')
 
 /**
  * Base class for systems. Handles managing of per system entity lists.
- * @class
+ * @class System
  */
 class System {
   /**

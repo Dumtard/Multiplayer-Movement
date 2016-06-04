@@ -2,7 +2,7 @@ let System = require('./system')
 
 /**
  * Class for handling the world bounds for entities
- * @class
+ * @class WorldBoundsSystem
  * @extends System
  */
 class WorldBoundsSystem extends System {

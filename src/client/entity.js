@@ -1,6 +1,6 @@
 /**
  * Class representing an entity. Contains an id and components.
- * @class
+ * @class Entity
  */
 class Entity {
   /**
