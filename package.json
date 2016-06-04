@@ -1,0 +1,22 @@
+{
+  "name": "dragon-ponies",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "browserify": "^13.0.1",
+    "eventemitter3": "^1.2.0",
+    "gulp": "^3.9.1",
+    "gulp-rename": "^1.2.2",
+    "gulp-standard": "^7.0.1",
+    "gulp-webserver": "^0.9.1",
+    "run-sequence": "^1.2.1",
+    "through2": "^2.0.1",
+    "webpack-stream": "^3.2.0"
+  }
+}
