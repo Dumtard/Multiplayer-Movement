@@ -1,16 +1,22 @@
 var gulp = require('gulp')
-var browserify = require('browserify')
-var through2 = require('through2')
-var rename = require('gulp-rename')
 var webserver = require('gulp-webserver')
 var runSequence = require('run-sequence')
 var standard = require('gulp-standard')
-var path = require('path')
-var webpack = require('webpack-stream')
+var webpack = require('webpack')
+var webpackStream = require('webpack-stream')
+var spawn = require('child_process').spawn
+var node
 
 gulp.task('build', function() {
   return gulp.src('./src/client/main.js')
-    .pipe(webpack({
+    .pipe(webpackStream({
+      plugins: [
+        new webpack.DefinePlugin({
+          'process.env': {
+            BROWSER: JSON.stringify(true)
+          }
+        })
+      ],
       stats: {
         timings: true,
         reasons: true,
@@ -27,26 +33,22 @@ gulp.task('build', function() {
     })
     .pipe(gulp.dest('./build/js'))
 })
-// gulp.task('build', function () {
-//   return gulp.src('./src/client/main.js')
-//   .pipe(through2.obj(function (file, enc, next) {
-//     browserify(file.path, { debug: process.env.NODE_ENV === 'development' })
-//     .bundle(function (err, res) {
-//       if (err) {
-//         return next(err)
-//       }
 
-//       file.contents = res;
-//       next(null, file);
-//     })
-//   }))
-//   .on('error', function (error) {
-//     console.log(error.stack)
-//     this.emit('end')
-//   })
-//   .pipe(rename('main.js'))
-//   .pipe(gulp.dest('./build/js'))
-// })
+gulp.task('node', function() {
+  if (node) {
+    node.kill()
+  }
+
+  node = spawn('node', ['./src/game-server/main.js'])
+  node.on('error', function (err) {
+    gulp.log(err)
+  })
+  .on('close', function (code) {
+    if (code === 8) {
+      gulp.log('Error detected, waiting for changes...')
+    }
+  })
+})
 
 gulp.task('lint', function () {
   return gulp.src('./src/**/*.js')
@@ -58,8 +60,11 @@ gulp.task('lint', function () {
 })
 
 gulp.task('watch', function () {
-  gulp.watch(['./src/**/*.js'], function () {
+  gulp.watch(['./src/client/**/*.js', './src/shared/**/*.js'], function () {
     runSequence('lint', 'build')
+  })
+  gulp.watch(['./src/game-server/**/*.js', './src/shared/**/*.js'], function () {
+    runSequence('lint', 'node')
   })
 })
 
@@ -67,10 +72,26 @@ gulp.task('serve', function () {
   return gulp.src('./build')
   .pipe(webserver({
     livereload: true,
-    open: true
+    open: false
   }))
 })
 
+gulp.task('client', function (cb) {
+  gulp.watch(['./src/client/**/*.js', './src/shared/**/*.js'], function () {
+    runSequence('lint', 'build')
+  })
+
+  runSequence('lint', 'build', 'serve', cb)
+})
+
+gulp.task('server', function (cb) {
+  gulp.watch(['./src/server/**/*.js', './src/shared/**/*.js'], function () {
+    runSequence('lint', 'node')
+  })
+
+  runSequence('lint', 'node', cb)
+})
+
 gulp.task('default', function (cb) {
-  runSequence('lint', 'build', 'serve', 'watch', cb)
+  runSequence('lint', 'build', 'node', 'serve', 'watch', cb)
 })

@@ -46,14 +46,17 @@ class RenderSystem extends System {
    */
   handle (delta, entity, [percent]) {
     let position = entity.position
+    let sprite = entity.sprite
 
-    let diff = {
-      x: position.x - position.previous.x,
-      y: position.y - position.previous.y
-    }
+    // let diff = {
+    //   x: position.x - position.previous.x,
+    //   y: position.y - position.previous.y
+    // }
 
-    entity.sprite.position.x = position.previous.x + (diff.x * percent)
-    entity.sprite.position.y = position.previous.y + (diff.y * percent)
+    // entity.sprite.position.x = position.previous.x + (diff.x * percent)
+    // entity.sprite.position.y = position.previous.y + (diff.y * percent)
+    sprite.position.x = position.x
+    sprite.position.y = position.y
   }
 
   /**

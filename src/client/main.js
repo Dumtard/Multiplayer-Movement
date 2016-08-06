@@ -2,6 +2,7 @@
  * Game
  * @type Game
  */
-let Game = require('./game')
-var game = new Game()
-game.start()
+
+let Client = require('./client')
+var client = new Client()
+client.start()

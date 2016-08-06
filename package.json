@@ -16,7 +16,9 @@
     "gulp-standard": "^7.0.1",
     "gulp-webserver": "^0.9.1",
     "run-sequence": "^1.2.1",
+    "socket.io": "^1.4.6",
     "through2": "^2.0.1",
+    "webpack": "^1.13.1",
     "webpack-stream": "^3.2.0"
   }
 }

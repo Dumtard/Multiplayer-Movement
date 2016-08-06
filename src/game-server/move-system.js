@@ -20,10 +20,8 @@ class MoveSystem extends System {
    * @param {Entity} entity - The entity to move
    */
   handle (delta, entity) {
-    entity.position.previous.x = entity.position.x
-    entity.position.previous.y = entity.position.y
-    entity.position.y += entity.velocity.y * delta
-    entity.position.x += entity.velocity.x * delta
+    // entity.position.y += entity.velocity.y * delta
+    // entity.position.x += entity.velocity.x * delta
   }
 }
 

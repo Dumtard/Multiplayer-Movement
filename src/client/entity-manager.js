@@ -80,4 +80,5 @@ class EntityManager {
   }
 }
 
-module.exports = window.EntityManager = EntityManager
+module.exports = EntityManager
+// module.exports = window.EntityManager = EntityManager

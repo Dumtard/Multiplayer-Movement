@@ -1,10 +1,31 @@
 let requestAnimationFrame = window.requestAnimationFrame
 let PIXI = window.PIXI
 
+let server = require('./server')
+
+server.on('disconnect', () => {
+  console.log('disconnected')
+})
+
+server.on('state', (data) => {
+  if (!data.length > 0 || !data[0]) {
+    return
+  }
+  let entity = EntityManager.entities[0]
+  entity.position.x = data[0].position.x
+  entity.position.y = data[0].position.y
+
+  while (entity.inputs[0].id <= data[0].id) {
+    entity.inputs.shift()
+  }
+  // console.log(entity.inputs.length)
+  // console.log(JSON.stringify(entity.inputs, undefined, 2))
+  for (let i = 0; i < entity.inputs.length; i++) {
+    // let input = entity.inputs[i]
+  }
+})
+
 let InputSystem = require('./input-system')
-let GravitySystem = require('./gravity-system')
-let MoveSystem = require('./move-system')
-let WorldBoundsSystem = require('./world-bounds-system')
 let RenderSystem = require('./render-system')
 
 /**
@@ -30,8 +51,10 @@ let renderer = require('./renderer')
 let previousTime = Date.now() / 1000
 let delta = 0
 let updateDelta = 0
+let sendDelta = 0
 
 let updateRate = 1 / 32
+let sendRate = 1 / 10
 
 let debugText = new PIXI.Text(`Frame Time: --ms
       FPS: --.--
@@ -51,9 +74,9 @@ document.addEventListener('keydown', (event) => {
 /**
  * Base class for the game. This is the entry point to the game. It will manage
  * the game loop and calling all the appropriate systems
- * @class Game
+ * @class Client
  */
-class Game {
+class Client {
   /**
    * Create a game instance
    * @constructor
@@ -78,24 +101,35 @@ class Game {
    * correct times.
    */
   update () {
+    requestAnimationFrame(this.update.bind(this))
+
     let currentTime = Date.now() / 1000
     delta = currentTime - previousTime
     previousTime = currentTime
 
+    if (!server.connected || document.hidden) {
+      return
+    }
+
     updateDelta = updateDelta + delta
+    sendDelta = sendDelta + delta
+
+    // Receive
 
     while (updateDelta >= updateRate) {
       updateDelta = updateDelta - updateRate
 
       InputSystem.update(updateRate)
-      GravitySystem.update(updateRate)
-      MoveSystem.update(updateRate)
-      WorldBoundsSystem.update(updateRate)
+    }
+
+    while (sendDelta >= sendRate) {
+      sendDelta = sendDelta - sendRate
+
+      InputSystem.send()
     }
 
     RenderSystem.update(delta, updateDelta / updateRate)
-    requestAnimationFrame(this.update.bind(this))
   }
 }
 
-module.exports = Game
+module.exports = Client

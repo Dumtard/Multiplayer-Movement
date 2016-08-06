@@ -20,9 +20,9 @@ class WorldBoundsSystem extends System {
    * @param {Entity} entity - The entity to apply the bounds to
    */
   handle (delta, entity) {
-    if (entity.position.y + 64 > window.innerHeight / 2) {
+    if (entity.position.y > 200) {
       entity.velocity.y = 0
-      entity.position.y = window.innerHeight / 2 - 64
+      entity.position.y = 200
     } else if (entity.position.y < 0) {
       entity.velocity.y = 0
       entity.position.y = 0
