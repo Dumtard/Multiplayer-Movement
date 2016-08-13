@@ -12,12 +12,20 @@ server.on('state', (data) => {
     return
   }
   let entity = EntityManager.entities[0]
-  entity.position.x = data[0].position.x
-  entity.position.y = data[0].position.y
 
   while (entity.inputs[0].id <= data[0].id) {
     entity.inputs.shift()
   }
+
+  var samePosition = entity.inputs[0].position.x === data[0].position.x &&
+    entity.inputs[0].position.y === data[0].position.y
+
+  if (!samePosition) {
+    console.log('WRONG POSITION')
+    entity.position.x = data[0].position.x
+    entity.position.y = data[0].position.y
+  }
+
   // console.log(entity.inputs.length)
   // console.log(JSON.stringify(entity.inputs, undefined, 2))
   for (let i = 0; i < entity.inputs.length; i++) {
@@ -27,18 +35,21 @@ server.on('state', (data) => {
 
 let InputSystem = require('./input-system')
 let RenderSystem = require('./render-system')
+let MoveSystem = require('../shared/move-system')
+let GravitySystem = require('../shared/gravity-system')
+let WorldBoundsSystem = require('../shared/world-bounds-system')
 
 /**
  * EnttiyManager
  * @type {EntityManager}
  */
-let EntityManager = require('./entity-manager')
+let EntityManager = require('../shared/entity-manager')
 
 /**
  * GameObjectFactory
  * @type {GameObjectFactory}
  */
-let GameObjectFactory = require('./game-object-factory')
+let GameObjectFactory = require('../shared/game-object-factory')
 
 window.player = GameObjectFactory.createPlayer()
 
@@ -118,6 +129,10 @@ class Client {
 
     while (updateDelta >= updateRate) {
       updateDelta = updateDelta - updateRate
+
+      GravitySystem.update(updateRate)
+      MoveSystem.update(updateRate)
+      WorldBoundsSystem.update(updateRate)
 
       InputSystem.update(updateRate)
     }

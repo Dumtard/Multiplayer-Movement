@@ -37,7 +37,7 @@ class GameObjectFactory {
     //   Math.random() * (window.innerWidth / 2),
     //   window.innerHeight / 2 - 64
     // )
-    // entity.position.previous = new PIXI.Point()
+    entity.position.previous = {x: 0, y: 100} // new PIXI.Point()
     // entity.velocity = new PIXI.Point()
     entity.velocity = {x: 0, y: 0}
     entity.gravity = {x: 0, y: 2000}

@@ -1,21 +1,7 @@
 // let InputSystem = require('./input-system')
-// let GravitySystem = require('./gravity-system')
-// let MoveSystem = require('./move-system')
-// let WorldBoundsSystem = require('./world-bounds-system')
-
-/**
- * EnttiyManager
- * @type {EntityManager}
- */
-// let EntityManager = require('./entity-manager')
-
-/**
- * GameObjectFactory
- * @type {GameObjectFactory}
- */
-// let GameObjectFactory = require('./game-object-factory')
-
-// window.player = GameObjectFactory.createPlayer()
+let GravitySystem = require('../shared/gravity-system')
+let MoveSystem = require('../shared/move-system')
+let WorldBoundsSystem = require('../shared/world-bounds-system')
 
 let previousTime = Date.now() / 1000
 let delta = 0
@@ -31,13 +17,13 @@ var client = require('./client')
  * EntityManager
  * @type {EntityManager}
  */
-let EntityManager = require('../client/entity-manager')
+let EntityManager = require('../shared/entity-manager')
 
 /**
  * GameObjectFactory
  * @type {GameObjectFactory}
  */
-let GameObjectFactory = require('../client/game-object-factory')
+let GameObjectFactory = require('../shared/game-object-factory')
 
 /**
  * Base class for the game. This is the entry point to the game. It will manage
@@ -104,7 +90,9 @@ class Server {
           let keyboard = input.keyboard || {}
           let id = input.id
 
-          if (keyboard[entity.input.right]) {
+          if (keyboard[entity.input.right] && keyboard[entity.input.left]) {
+            entity.velocity.x = 0
+          } else if (keyboard[entity.input.right]) {
             entity.velocity.x = 100
           } else if (keyboard[entity.input.left]) {
             entity.velocity.x = -100
@@ -115,25 +103,22 @@ class Server {
             entity.velocity.y = -500
           }
 
-          entity.velocity.y += entity.gravity.y * updateRate
-          entity.velocity.x += entity.gravity.x * updateRate
-
-          entity.position.x += entity.velocity.x * updateRate
-          entity.position.y += entity.velocity.y * updateRate
+          GravitySystem.update(updateRate)
+          MoveSystem.update(updateRate)
+          WorldBoundsSystem.update(updateRate)
 
           if (entity.position.y > 200) {
             entity.position.y = 200
             entity.velocity.y = 0
           }
+
           entity.input.id = id
-          // console.log('update: ' + id)
           entity.dirty = true
         }
+      } else {
+        console.log('no input')
       }
       // InputSystem.update(updateRate)
-      // GravitySystem.update(updateRate)
-      // MoveSystem.update(updateRate)
-      // WorldBoundsSystem.update(updateRate)
     }
 
     while (sendDelta >= sendRate) {
@@ -141,7 +126,6 @@ class Server {
 
       if (EntityManager.entities.length > 0) {
         if (EntityManager.entities[0].dirty) {
-          // console.log('send: ' + EntityManager.entities[0].input.id)
           client.send('state', [{
             id: EntityManager.entities[0].input.id,
             position: EntityManager.entities[0].position

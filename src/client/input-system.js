@@ -1,4 +1,4 @@
-let System = require('./system')
+let System = require('../shared/system')
 
 let keyboard = {}
 let server = require('./server')
@@ -31,7 +31,9 @@ class InputSystem extends System {
    * @param {Entity} entity - The entity to handle inputs for
    */
   handle (delta, entity) {
-    if (keyboard[entity.input.right]) {
+    if (keyboard[entity.input.right] && keyboard[entity.input.left]) {
+      entity.velocity.x = 0
+    } else if (keyboard[entity.input.right]) {
       entity.velocity.x = 100
     } else if (keyboard[entity.input.left]) {
       entity.velocity.x = -100
@@ -44,7 +46,8 @@ class InputSystem extends System {
     entity.input.id = (entity.input.id + 1) || 0
     entity.inputs.push({
       id: entity.input.id,
-      keyboard: Object.assign({}, keyboard)
+      keyboard: Object.assign({}, keyboard),
+      position: Object.assign({}, entity.position)
     })
   }
 

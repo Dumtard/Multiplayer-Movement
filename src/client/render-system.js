@@ -1,4 +1,4 @@
-let System = require('./system')
+let System = require('../shared/system')
 
 /**
  * Renderer
@@ -48,15 +48,13 @@ class RenderSystem extends System {
     let position = entity.position
     let sprite = entity.sprite
 
-    // let diff = {
-    //   x: position.x - position.previous.x,
-    //   y: position.y - position.previous.y
-    // }
+    let diff = {
+      x: position.x - position.previous.x,
+      y: position.y - position.previous.y
+    }
 
-    // entity.sprite.position.x = position.previous.x + (diff.x * percent)
-    // entity.sprite.position.y = position.previous.y + (diff.y * percent)
-    sprite.position.x = position.x
-    sprite.position.y = position.y
+    sprite.position.x = position.previous.x + (diff.x * percent)
+    sprite.position.y = position.previous.y + (diff.y * percent)
   }
 
   /**

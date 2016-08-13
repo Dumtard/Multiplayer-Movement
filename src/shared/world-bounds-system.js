@@ -28,9 +28,9 @@ class WorldBoundsSystem extends System {
       entity.position.y = 0
     }
 
-    if (entity.position.x + 48 > window.innerWidth / 2) {
+    if (entity.position.x + 48 > 700 / 2) {
       entity.velocity.x = 0
-      entity.position.x = window.innerWidth / 2 - 48
+      entity.position.x = 700 / 2 - 48
     } else if (entity.position.x < 0) {
       entity.velocity.x = 0
       entity.position.x = 0
