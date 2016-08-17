@@ -19,17 +19,8 @@ class GameObjectFactory {
    * @static
    * @return {Entity} Player Entity
    */
-  static createPlayer () {
-    let entity = EntityManager.createEntity()
-
-    if (typeof window !== 'undefined') {
-      let sprite = PIXI.Sprite.fromImage('resources/square.png')
-      sprite.tint = Math.random() * 0xFFFFFF
-      sprite.scale.set(0.48, 0.64)
-
-      entity.sprite = sprite
-      window.entity = entity
-    }
+  static createPlayer (id) {
+    let entity = EntityManager.createEntity(id)
 
     entity.inputs = []
     entity.position = {x: 0, y: 100}

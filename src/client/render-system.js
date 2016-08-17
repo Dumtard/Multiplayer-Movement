@@ -45,8 +45,7 @@ class RenderSystem extends System {
    * @param {Entity} entity - The entity to render
    */
   handle (delta, entity, [percent]) {
-    let position = entity.position
-    let sprite = entity.sprite
+    let {position, sprite} = entity
 
     let diff = {
       x: position.x - position.previous.x,

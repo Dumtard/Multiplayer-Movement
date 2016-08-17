@@ -45,7 +45,8 @@ class Server {
     console.log('Server Started')
 
     client.on('connect', (socket) => {
-      GameObjectFactory.createPlayer()
+      let entity = GameObjectFactory.createPlayer(socket.id)
+      socket.emit('createEntity', entity)
     })
 
     client.on('disconnect', (socket) => {
@@ -124,14 +125,20 @@ class Server {
     while (sendDelta >= sendRate) {
       sendDelta = sendDelta - sendRate
 
+      let state = []
+
       if (EntityManager.entities.length > 0) {
-        if (EntityManager.entities[0].dirty) {
-          client.send('state', [{
-            id: EntityManager.entities[0].input.id,
-            position: EntityManager.entities[0].position
-          }])
-          EntityManager.entities[0].dirty = false
+        for (let i = 0, len = EntityManager.entities.length; i < len; i++) {
+          if (EntityManager.entities[0].dirty) {
+            state.push({
+                id: EntityManager.entities[0].input.id,
+                position: EntityManager.entities[0].position
+            })
+
+            EntityManager.entities[0].dirty = false
+          }
         }
+        client.send('state', state)
       }
     }
   }

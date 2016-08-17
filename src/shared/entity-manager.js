@@ -49,6 +49,32 @@ class EntityManager {
   }
 
   /**
+   * Add an existing entity to the list of entities
+   */
+  static addEntity (data) {
+    let entity = new Proxy(new Entity(data.id), handler)
+
+    entity2proxy[entity.id] = entity
+    entities.push(entity)
+
+    for (let key in data) {
+      entity[key] = data[key]
+    }
+
+    if (typeof window !== 'undefined') {
+      let sprite = PIXI.Sprite.fromImage('resources/square.png')
+      sprite.tint = Math.random() * 0xFFFFFF
+      sprite.scale.set(0.48, 0.64)
+
+      entity.sprite = sprite
+    }
+
+    console.log(entity)
+
+    return entity
+  }
+
+  /**
    * Get the list of entity proxies
    * @static
    * @return {Array<Entity>} List of entity proxies

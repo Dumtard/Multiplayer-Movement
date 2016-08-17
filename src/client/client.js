@@ -3,6 +3,10 @@ let PIXI = window.PIXI
 
 let server = require('./server')
 
+server.on('createEntity', (data) => {
+  window.player = EntityManager.addEntity(data)
+})
+
 server.on('disconnect', () => {
   console.log('disconnected')
 })
@@ -13,7 +17,7 @@ server.on('state', (data) => {
   }
   let entity = EntityManager.entities[0]
 
-  while (entity.inputs[0].id <= data[0].id) {
+  while (entity.inputs.length > 0 && entity.inputs[0].id <= data[0].id) {
     entity.inputs.shift()
   }
 
@@ -24,13 +28,13 @@ server.on('state', (data) => {
     console.log('WRONG POSITION')
     entity.position.x = data[0].position.x
     entity.position.y = data[0].position.y
+
+    for (let i = 0; i < entity.inputs.length; i++) {
+      // TODO: Move back to position
+      // let input = entity.inputs[i]
+    }
   }
 
-  // console.log(entity.inputs.length)
-  // console.log(JSON.stringify(entity.inputs, undefined, 2))
-  for (let i = 0; i < entity.inputs.length; i++) {
-    // let input = entity.inputs[i]
-  }
 })
 
 let InputSystem = require('./input-system')
@@ -51,8 +55,6 @@ let EntityManager = require('../shared/entity-manager')
  */
 let GameObjectFactory = require('../shared/game-object-factory')
 
-window.player = GameObjectFactory.createPlayer()
-
 /**
  * Renderer
  * @type {Renderer}
@@ -69,7 +71,8 @@ let sendRate = 1 / 10
 
 let debugText = new PIXI.Text(`Frame Time: --ms
       FPS: --.--
- Entities: ---`, { font: '16px Monospace', fill: 'white' })
+ Entities: ---
+  Latency: ---`, { font: '16px Monospace', fill: 'white' })
 debugText.x = 10
 debugText.y = 10
 debugText.visible = true
@@ -96,7 +99,8 @@ class Client {
     setInterval(() => {
       debugText.text = `Frame Time: ${(delta * 1000).toFixed(0)}ms
       FPS: ${(1 / delta).toFixed(2)}
- Entities: ${EntityManager.entities.length}`
+ Entities: ${EntityManager.entities.length}
+  Latency: ---`
     }, 250)
   }
 
