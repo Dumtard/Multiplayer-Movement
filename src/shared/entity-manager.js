@@ -5,7 +5,7 @@ let id = 0
 
 let handler = {
   set: function (entity, component, value) {
-    let proxy = entity2proxy[entity.id]
+    let proxy = entities[entity.id]
     if (typeof value !== 'undefined') {
       entity[component] = value
       EventEmitter.emit('componentAdded', {entity: proxy, component})
@@ -17,14 +17,13 @@ let handler = {
   },
 
   deleteProperty: function (entity, component) {
-    let proxy = entity2proxy[entity.id]
-    EventEmitter.emit('componentRemoved', {proxy, component})
+    let proxy = entities[entity.id]
+    EventEmitter.emit('componentRemoved', {entity: proxy, component})
     return true
   }
 }
 
-let entities = []
-let entity2proxy = {}
+let entities = {}
 
 /**
  * Class to manage entities. All entities should be created and removed through
@@ -39,11 +38,10 @@ class EntityManager {
    * @static
    * @return {Entity} Proxy to an entity
    */
-  static createEntity () {
-    let entity = new Proxy(new Entity(id++), handler)
+  static createEntity (id) {
+    let entity = new Proxy(new Entity(id), handler)
 
-    entity2proxy[entity.id] = entity
-    entities.push(entity)
+    entities[entity.id] = entity
 
     return entity
   }
@@ -54,8 +52,7 @@ class EntityManager {
   static addEntity (data) {
     let entity = new Proxy(new Entity(data.id), handler)
 
-    entity2proxy[entity.id] = entity
-    entities.push(entity)
+    entities[entity.id] = entity
 
     for (let key in data) {
       entity[key] = data[key]
@@ -68,8 +65,6 @@ class EntityManager {
 
       entity.sprite = sprite
     }
-
-    console.log(entity)
 
     return entity
   }
@@ -90,21 +85,21 @@ class EntityManager {
    * @return {boolean} Success of the removal of the entity
    */
   static removeEntity (entity) {
-    let proxy = entity2proxy[entity.id]
-
-    let index = entities.indexOf(entity)
-
-    if (index === -1) {
-      return false
+    let id = entity
+    if (entity instanceof Entity) {
+      id = entity.id
     }
 
-    entities.splice(index, 1)
-    delete entity2proxy[entity.id]
-    EventEmitter.emit('entityRemoved', proxy)
+    entity = entities[id]
+
+    delete entities[id]
+    EventEmitter.emit('entityRemoved', entity)
 
     return true
   }
 }
 
 module.exports = EntityManager
-// module.exports = window.EntityManager = EntityManager
+if (typeof window !== 'undefined') {
+  module.exports = window.EntityManager = EntityManager
+}

@@ -20,12 +20,6 @@ var client = require('./client')
 let EntityManager = require('../shared/entity-manager')
 
 /**
- * GameObjectFactory
- * @type {GameObjectFactory}
- */
-let GameObjectFactory = require('../shared/game-object-factory')
-
-/**
  * Base class for the game. This is the entry point to the game. It will manage
  * the game loop and calling all the appropriate systems
  * @class Server
@@ -43,27 +37,6 @@ class Server {
    */
   start () {
     console.log('Server Started')
-
-    client.on('connect', (socket) => {
-      let entity = GameObjectFactory.createPlayer(socket.id)
-      socket.emit('createEntity', entity)
-    })
-
-    client.on('disconnect', (socket) => {
-      EntityManager.removeEntity(EntityManager.entities[0])
-    })
-
-    client.on('input', (data) => {
-      let entity = EntityManager.entities[0]
-      for (var i = 0; i < data.length; i++) {
-        if (typeof entity.latest === 'undefined' ||
-            data[i].id > entity.latest
-        ) {
-          entity.inputs.push(data[i])
-          entity.latest = data[i].id
-        }
-      }
-    })
 
     setInterval(this.update.bind(this), 32)
   }
@@ -83,9 +56,10 @@ class Server {
     while (updateDelta >= updateRate) {
       updateDelta = updateDelta - updateRate
 
-      if (EntityManager.entities.length > 0) {
-        let entity = EntityManager.entities[0]
-        let input = EntityManager.entities[0].inputs.shift()
+      let entityIds = Object.keys(EntityManager.entities)
+      for (let i = 0, len = entityIds.length; i < len; i++) {
+        let entity = EntityManager.entities[entityIds[i]]
+        let input = entity.inputs.shift()
 
         if (input) {
           let keyboard = input.keyboard || {}
@@ -104,21 +78,13 @@ class Server {
             entity.velocity.y = -500
           }
 
-          GravitySystem.update(updateRate)
-          MoveSystem.update(updateRate)
-          WorldBoundsSystem.update(updateRate)
-
-          if (entity.position.y > 200) {
-            entity.position.y = 200
-            entity.velocity.y = 0
-          }
-
           entity.input.id = id
           entity.dirty = true
         }
-      } else {
-        console.log('no input')
       }
+      GravitySystem.update(updateRate)
+      MoveSystem.update(updateRate)
+      WorldBoundsSystem.update(updateRate)
       // InputSystem.update(updateRate)
     }
 
@@ -127,19 +93,20 @@ class Server {
 
       let state = []
 
-      if (EntityManager.entities.length > 0) {
-        for (let i = 0, len = EntityManager.entities.length; i < len; i++) {
-          if (EntityManager.entities[0].dirty) {
-            state.push({
-                id: EntityManager.entities[0].input.id,
-                position: EntityManager.entities[0].position
-            })
+      let entityIds = Object.keys(EntityManager.entities)
+      for (let i = 0, len = entityIds.length; i < len; i++) {
+        let entity = EntityManager.entities[entityIds[i]]
+        if (entity.dirty) {
+          state.push({
+              id: entity.id,
+              processed: entity.input.id,
+              position: entity.position
+          })
 
-            EntityManager.entities[0].dirty = false
-          }
+          entity.dirty = false
         }
-        client.send('state', state)
       }
+      client.send('state', state)
     }
   }
 }

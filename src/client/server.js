@@ -12,10 +12,7 @@ class Server {
   }
 
   send (event, data) {
-    for (let i = 0, len = sockets.length; i < len; i++) {
-      sockets[i].emit(event, data)
-    }
-
+    io.emit(event, data)
     return this
   }
 

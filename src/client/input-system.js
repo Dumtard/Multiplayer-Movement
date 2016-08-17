@@ -31,6 +31,10 @@ class InputSystem extends System {
    * @param {Entity} entity - The entity to handle inputs for
    */
   handle (delta, entity) {
+    if (entity.id !== window.currentId) {
+      return
+    }
+
     if (keyboard[entity.input.right] && keyboard[entity.input.left]) {
       entity.velocity.x = 0
     } else if (keyboard[entity.input.right]) {
@@ -53,6 +57,9 @@ class InputSystem extends System {
 
   send () {
     for (let i = 0, len = this.entities.length; i < len; i++) {
+      if (this.entities[i].id !== window.currentId) {
+        return
+      }
       server.send('input', this.entities[i].inputs)
     }
   }
