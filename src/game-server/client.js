@@ -16,8 +16,12 @@ let EntityManager = require('../shared/entity-manager')
  */
 let GameObjectFactory = require('../shared/game-object-factory')
 
+let server
+
 class Client {
-  constructor () {
+  constructor (gameServer) {
+    server = gameServer
+
     io.on('connect', (socket) => {
       console.log(`${socket.id} connected`)
 
@@ -30,9 +34,13 @@ class Client {
         }
       }
 
+      // Create entity
       let entity = GameObjectFactory.createPlayer(socket.id)
-      socket.emit('createEntity', entity)
+      // Send first player entity
+      let entities = []
+      entities.push(entity.sendSelf())
 
+      // Send all other players entities to first player
       let entityIds = Object.keys(EntityManager.entities)
       for (let i = 0, len = entityIds.length; i < len; i++) {
         if (entityIds[i] === socket.id) {
@@ -40,16 +48,21 @@ class Client {
         }
 
         let entity = EntityManager.entities[entityIds[i]]
-        socket.emit('createEntity', entity)
+        entities.push(entity.sendOther())
       }
+      socket.emit('createEntity', entities)
 
+      socket.emit('tick', server.tick)
+
+      // Send first player entity to all other players
       for (let i = 0, len = sockets.length; i < len; i++) {
-        sockets[i].emit('createEntity', entity)
+        sockets[i].emit('createEntity', entity.sendOther())
       }
 
+      // Remove the first player entity when they disconnect
       socket.on('disconnect', () => {
         console.log(`${socket.id} disconnected`)
-        EntityManager.removeEntity(socket.id)
+        EntityManager.remove(socket.id)
         let index = sockets.indexOf(socket)
 
         sockets.splice(index, 1)
@@ -58,9 +71,11 @@ class Client {
           sockets[i].emit('removeEntity', socket.id)
         }
       })
-      .on('test', (data) => {
-        socket.emit('pong', data)
+      // Latency check
+      .on('tick', (data) => {
+        socket.emit('tock', data.current)
       })
+      // First player input, store it for later use
       .on('input', (data) => {
         let entity = EntityManager.entities[socket.id]
         for (var i = 0; i < data.length; i++) {
@@ -99,6 +114,4 @@ class Client {
   }
 }
 
-let client = new Client()
-
-module.exports = client
+module.exports = Client

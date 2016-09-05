@@ -18,6 +18,7 @@ window.addEventListener('resize', () => {
 let stage = new PIXI.Container()
 stage.scale.set(2, 2)
 
+// TODO: Turn this into for of a 'world' or 'zone' class
 /**
  * Class to wrap around PIXI renderer and a stage
  * @class Renderer

@@ -3,21 +3,29 @@ let GravitySystem = require('../shared/gravity-system')
 let MoveSystem = require('../shared/move-system')
 let WorldBoundsSystem = require('../shared/world-bounds-system')
 
-let previousTime = Date.now() / 1000
-let delta = 0
-let updateDelta = 0
-let sendDelta = 0
-
-let updateRate = 1 / 32
-let sendRate = 1 / 10
-
-var client = require('./client')
+var Client = require('./client')
+let client
 
 /**
  * EntityManager
  * @type {EntityManager}
  */
 let EntityManager = require('../shared/entity-manager')
+
+/**
+ * GameObjectFactory
+ * @type {GameObjectFactory}
+ */
+let GameObjectFactory = require('../shared/game-object-factory')
+
+// Private variables
+let previousTime
+let delta
+let updateDelta
+let sendDelta
+
+const updateRate = 1 / 32
+const sendRate = 1 / 10
 
 /**
  * Base class for the game. This is the entry point to the game. It will manage
@@ -29,14 +37,23 @@ class Server {
    * Create a game instance
    * @constructor
    */
-  // constructor () {
-  // }
+  constructor () {
+    previousTime = Date.now() / 1000
+    delta = 0
+    updateDelta = 0
+    sendDelta = 0
+    this.tick = 0
+
+    client = new Client(this)
+  }
 
   /**
    * Start the game
    */
   start () {
     console.log('Server Started')
+
+    GameObjectFactory.createEnemy()
 
     setInterval(this.update.bind(this), 32)
   }
@@ -54,12 +71,18 @@ class Server {
     sendDelta = sendDelta + delta
 
     while (updateDelta >= updateRate) {
+      this.tick++
       updateDelta = updateDelta - updateRate
 
+      // TODO: Move this into a system
       let entityIds = Object.keys(EntityManager.entities)
       for (let i = 0, len = entityIds.length; i < len; i++) {
         let entity = EntityManager.entities[entityIds[i]]
-        let input = entity.inputs.shift()
+
+        let input
+        if (entity.inputs) {
+          input = entity.inputs.shift()
+        }
 
         if (input) {
           let keyboard = input.keyboard || {}
@@ -82,29 +105,40 @@ class Server {
           entity.dirty = true
         }
       }
+
+      for (let i = 0, len = entityIds.length; i < len; i++) {
+        for (let j = 0, len = entityIds.length; j < len; j++) {
+          let entity = EntityManager.entities[entityIds[i]]
+          let entity2 = EntityManager.entities[entityIds[j]]
+
+          if (entity.id !== entity2.id &&
+              entity.position.x < entity2.position.x + 50 &&
+              entity.position.x + 48 > entity2.position.x) {
+            client.send('collision', entity.id)
+          }
+        }
+      }
+
       GravitySystem.update(updateRate)
       MoveSystem.update(updateRate)
       WorldBoundsSystem.update(updateRate)
-      // InputSystem.update(updateRate)
     }
 
     while (sendDelta >= sendRate) {
       sendDelta = sendDelta - sendRate
 
-      let state = []
+      let state = {
+        tick: this.tick,
+        entities: []
+      }
 
       let entityIds = Object.keys(EntityManager.entities)
       for (let i = 0, len = entityIds.length; i < len; i++) {
         let entity = EntityManager.entities[entityIds[i]]
-        if (entity.dirty) {
-          state.push({
-              id: entity.id,
-              processed: entity.input.id,
-              position: entity.position
-          })
-
-          entity.dirty = false
-        }
+        // if (entity.dirty) {
+        state.entities.push(entity.sendState())
+        entity.dirty = false
+        // }
       }
       client.send('state', state)
     }

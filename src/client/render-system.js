@@ -34,8 +34,8 @@ class RenderSystem extends System {
    * @param {Number} index - The index of the entity being removed
    * @param {Entity} entity - The entity being removed
    */
-  remove (index, entity) {
-    super.remove(index, entity)
+  remove (entity) {
+    super.remove(entity)
     renderer.remove(entity.sprite)
   }
 
@@ -52,8 +52,59 @@ class RenderSystem extends System {
       y: position.y - position.previous.y
     }
 
-    sprite.position.x = position.previous.x + (diff.x * percent)
-    sprite.position.y = position.previous.y + (diff.y * percent)
+    //TODO Refacto the shit out of this
+    if (entity.position.buffer) {
+      let start
+      let end
+      if (entity.position.buffer.length > 3 && !entity.currentTick) {
+        start = entity.position.buffer[entity.position.buffer.length-3]
+        end = entity.position.buffer[entity.position.buffer.length-2]
+      } else if (entity.currentTick) {
+        start = entity.currentTick
+        for (let i = 0, len = entity.position.buffer.length; i < len; i++) {
+          if (entity.position.buffer[i].tick === start.tick) {
+            end = entity.position.buffer[i+1]
+            break
+          }
+        }
+      } else {
+        return
+      }
+
+      if (!start || !end) {
+        return
+      }
+
+      entity.currentTick = start
+
+      entity.tickDelta += delta
+      entity.currentTickRate = (end.tick - start.tick) * 0.03125
+
+      if (entity.tickDelta > entity.currentTickRate) {
+        start = entity.currentTick = end
+
+        for (let i = 0, len = entity.position.buffer.length; i < len; i++) {
+          if (entity.position.buffer[i].tick === start.tick) {
+            end = entity.position.buffer[i+1]
+            break
+          }
+        }
+
+        entity.tickDelta -= entity.currentTickRate
+      }
+
+      diff = {
+        x: end.x - start.x,
+        y: end.y - start.y
+      }
+
+      sprite.position.x = start.x + (diff.x * (entity.tickDelta / entity.currentTickRate))
+      sprite.position.y = start.y + (diff.y * (entity.tickDelta / entity.currentTickRate))
+    } else {
+      sprite.position.x = position.previous.x + (diff.x * percent)
+      sprite.position.y = position.previous.y + (diff.y * percent)
+    }
+
   }
 
   /**

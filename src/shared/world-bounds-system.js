@@ -28,11 +28,19 @@ class WorldBoundsSystem extends System {
       entity.position.y = 0
     }
 
-    if (entity.position.x + 48 > 700 / 2) {
-      entity.velocity.x = 0
-      entity.position.x = 700 / 2 - 48
+    if (entity.position.x + 48 > 420) {
+      if (entity.input) {
+        entity.velocity.x = 0
+      } else {
+        entity.velocity.x *= -1
+      }
+      entity.position.x = 420 - 48
     } else if (entity.position.x < 0) {
-      entity.velocity.x = 0
+      if (entity.input) {
+        entity.velocity.x = 0
+      } else {
+        entity.velocity.x *= -1
+      }
       entity.position.x = 0
     }
   }

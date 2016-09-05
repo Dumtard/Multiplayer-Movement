@@ -15,6 +15,7 @@ class System {
     this.entities = []
     this.components = components || []
 
+    // TODO: Move these events to EntityManager.on() ?
     EventEmitter.on('componentAdded', ({entity, component}) => {
       if (this.entities.indexOf(entity) !== -1) {
         return
@@ -34,23 +35,11 @@ class System {
         return
       }
 
-      let index = this.entities.indexOf(entity)
-
-      if (index === -1) {
-        return
-      }
-
-      this.remove(index, entity)
+      this.remove(entity)
     })
 
     EventEmitter.on('entityRemoved', (entity) => {
-      let index = this.entities.indexOf(entity)
-
-      if (index === -1) {
-        return
-      }
-
-      this.remove(index, entity)
+      this.remove(entity)
     })
   }
 
@@ -81,7 +70,13 @@ class System {
    * @param {Number} index - The index of the entity being removed
    * @param {Entity} entity - The entity being removed
    */
-  remove (index, entity) {
+  remove (entity) {
+    let index = this.entities.indexOf(entity)
+
+    if (index === -1) {
+      return
+    }
+
     this.entities.splice(index, 1)
   }
 

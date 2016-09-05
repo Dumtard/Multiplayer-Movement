@@ -1,26 +1,9 @@
 let Entity = require('./entity')
 let EventEmitter = require('./event-emitter')
 
-let id = 0
-
-let handler = {
-  set: function (entity, component, value) {
-    let proxy = entities[entity.id]
-    if (typeof value !== 'undefined') {
-      entity[component] = value
-      EventEmitter.emit('componentAdded', {entity: proxy, component})
-    } else {
-      EventEmitter.emit('componentRemoved', {entity: proxy, component})
-      entity[component] = value
-    }
-    return true
-  },
-
-  deleteProperty: function (entity, component) {
-    let proxy = entities[entity.id]
-    EventEmitter.emit('componentRemoved', {entity: proxy, component})
-    return true
-  }
+let PIXI
+if (typeof window !== 'undefined') {
+  PIXI = window.PIXI
 }
 
 let entities = {}
@@ -35,11 +18,29 @@ class EntityManager {
   /**
    * Create an entity with proxy wrapper to handle the adding and removing of
    * components.
-   * @static
-   * @return {Entity} Proxy to an entity
+   * @param {Number} id - The id of the entity
+   * @return {Entity} entity - The entity that was added to the system
    */
-  static createEntity (id) {
-    let entity = new Proxy(new Entity(id), handler)
+  create (id) {
+    let entity = new Proxy(new Entity(id), {
+      set: function (entity, component, value) {
+        let proxy = entities[entity.id]
+        if (typeof value !== 'undefined') {
+          entity[component] = value
+          EventEmitter.emit('componentAdded', {entity: proxy, component})
+        } else {
+          EventEmitter.emit('componentRemoved', {entity: proxy, component})
+          entity[component] = value
+        }
+        return true
+      },
+
+      deleteProperty: function (entity, component) {
+        let proxy = entities[entity.id]
+        EventEmitter.emit('componentRemoved', {entity: proxy, component})
+        return true
+      }
+    })
 
     entities[entity.id] = entity
 
@@ -48,43 +49,47 @@ class EntityManager {
 
   /**
    * Add an existing entity to the list of entities
+   * @param {Object} components - The components to create the entity out of
+   * @return {Entity} entity - The entity that was added to the system
    */
-  static addEntity (data) {
-    let entity = new Proxy(new Entity(data.id), handler)
+  add (components) {
+    let entity = this.create(components.id)
 
-    entities[entity.id] = entity
-
-    for (let key in data) {
-      entity[key] = data[key]
+    for (let key in components) {
+      entity[key] = components[key]
     }
 
     if (typeof window !== 'undefined') {
       let sprite = PIXI.Sprite.fromImage('resources/square.png')
-      sprite.tint = Math.random() * 0xFFFFFF
-      sprite.scale.set(0.48, 0.64)
+      sprite.tint = entity.other.tint
+      if (sprite.tint === '0x00FF00') {
+        sprite.scale.set(0.5, 0.5)
+      } else {
+        sprite.scale.set(0.48, 0.64)
+      }
 
       entity.sprite = sprite
     }
+
+    entities[entity.id] = entity
 
     return entity
   }
 
   /**
    * Get the list of entity proxies
-   * @static
-   * @return {Array<Entity>} List of entity proxies
+   * @return {Object} List of entity proxies
    */
-  static get entities () {
+  get entities () {
     return entities
   }
 
   /**
    * Remove the entity from the internal list. This will send the event to
    * remove from all the systems.
-   * @static
    * @return {boolean} Success of the removal of the entity
    */
-  static removeEntity (entity) {
+  remove (entity) {
     let id = entity
     if (entity instanceof Entity) {
       id = entity.id
@@ -99,7 +104,9 @@ class EntityManager {
   }
 }
 
-module.exports = EntityManager
+// module.exports = EntityManager
 if (typeof window !== 'undefined') {
-  module.exports = window.EntityManager = EntityManager
+  module.exports = window.EntityManager = new EntityManager()
+} else {
+  module.exports = new EntityManager()
 }
