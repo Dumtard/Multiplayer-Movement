@@ -52,7 +52,7 @@ class Client {
       }
       socket.emit('createEntity', entities)
 
-      socket.emit('tick', server.tick)
+      socket.emit('tick', window.tick)
 
       // Send first player entity to all other players
       for (let i = 0, len = sockets.length; i < len; i++) {

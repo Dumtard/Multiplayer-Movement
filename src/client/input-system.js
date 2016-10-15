@@ -50,6 +50,7 @@ class InputSystem extends System {
     entity.input.id = (entity.input.id + 1) || 0
     entity.inputs.push({
       id: entity.input.id,
+      tick: window.tick,
       keyboard: Object.assign({}, keyboard),
       position: Object.assign({}, entity.position)
     })

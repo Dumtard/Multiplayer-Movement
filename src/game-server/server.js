@@ -6,6 +6,8 @@ let WorldBoundsSystem = require('../shared/world-bounds-system')
 var Client = require('./client')
 let client
 
+window = global
+
 /**
  * EntityManager
  * @type {EntityManager}
@@ -27,6 +29,8 @@ let sendDelta
 const updateRate = 1 / 32
 const sendRate = 1 / 10
 
+let enemy
+
 /**
  * Base class for the game. This is the entry point to the game. It will manage
  * the game loop and calling all the appropriate systems
@@ -42,7 +46,7 @@ class Server {
     delta = 0
     updateDelta = 0
     sendDelta = 0
-    this.tick = 0
+    window.tick = 0
 
     client = new Client(this)
   }
@@ -53,7 +57,7 @@ class Server {
   start () {
     console.log('Server Started')
 
-    GameObjectFactory.createEnemy()
+    enemy = GameObjectFactory.createEnemy()
 
     setInterval(this.update.bind(this), 32)
   }
@@ -71,7 +75,7 @@ class Server {
     sendDelta = sendDelta + delta
 
     while (updateDelta >= updateRate) {
-      this.tick++
+      window.tick++
       updateDelta = updateDelta - updateRate
 
       // TODO: Move this into a system
@@ -82,6 +86,7 @@ class Server {
         let input
         if (entity.inputs) {
           input = entity.inputs.shift()
+          entity.lastInput = input
         }
 
         if (input) {
@@ -106,16 +111,31 @@ class Server {
         }
       }
 
+      // TODO: Create a circular buffer with positions to check collisions against
       for (let i = 0, len = entityIds.length; i < len; i++) {
-        for (let j = 0, len = entityIds.length; j < len; j++) {
-          let entity = EntityManager.entities[entityIds[i]]
-          let entity2 = EntityManager.entities[entityIds[j]]
+        let entity = EntityManager.entities[entityIds[i]]
 
-          if (entity.id !== entity2.id &&
-              entity.position.x < entity2.position.x + 50 &&
-              entity.position.x + 48 > entity2.position.x) {
-            client.send('collision', entity.id)
-          }
+        if (entity.id === enemy.id) {
+          continue
+        }
+
+        if (!entity.lastInput) {
+          continue
+        }
+
+        let diff = (window.tick - entity.lastInput.tick) + 3
+
+        if (!enemy.position.list[enemy.position.list.length-diff]) {
+          continue
+        }
+
+        // console.log(enemy.position.list[enemy.position.list.length-diff].tick + ': ' + enemy.position.list[enemy.position.list.length-diff].x)
+
+        // console.log((window.tick - diff) + ': ' + enemy.position.list[enemy.position.list.length-diff].x)
+
+        if (entity.position.x < enemy.position.list[enemy.position.list.length-diff].x + 50 &&
+            entity.position.x + 48 > enemy.position.list[enemy.position.list.length-diff].x) {
+          client.send('collision', entity.id)
         }
       }
 
@@ -128,7 +148,7 @@ class Server {
       sendDelta = sendDelta - sendRate
 
       let state = {
-        tick: this.tick,
+        tick: window.tick,
         entities: []
       }
 

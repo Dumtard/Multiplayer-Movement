@@ -24,6 +24,13 @@ class MoveSystem extends System {
     entity.position.previous.y = entity.position.y
     entity.position.y += entity.velocity.y * delta
     entity.position.x += entity.velocity.x * delta
+
+    entity.position.list = entity.position.list || []
+    entity.position.list.push({tick: window.tick, x: entity.position.x, y: entity.position.y})
+
+    if (entity.position.list.length > 20) {
+      entity.position.list = entity.position.list.splice(entity.position.list.length-20, 20)
+    }
   }
 }
 

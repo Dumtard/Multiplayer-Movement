@@ -13,6 +13,7 @@
     "eventemitter3": "^1.2.0",
     "gulp": "^3.9.1",
     "gulp-rename": "^1.2.2",
+    "gulp-rsync": "0.0.6",
     "gulp-standard": "^7.0.1",
     "gulp-webserver": "^0.9.1",
     "run-sequence": "^1.2.1",

@@ -47,11 +47,6 @@ class RenderSystem extends System {
   handle (delta, entity, [percent]) {
     let {position, sprite} = entity
 
-    let diff = {
-      x: position.x - position.previous.x,
-      y: position.y - position.previous.y
-    }
-
     //TODO Refacto the shit out of this
     if (entity.position.buffer) {
       let start
@@ -93,14 +88,21 @@ class RenderSystem extends System {
         entity.tickDelta -= entity.currentTickRate
       }
 
-      diff = {
+      let diff = {
         x: end.x - start.x,
         y: end.y - start.y
       }
 
       sprite.position.x = start.x + (diff.x * (entity.tickDelta / entity.currentTickRate))
       sprite.position.y = start.y + (diff.y * (entity.tickDelta / entity.currentTickRate))
+
+      // console.log(window.tick + ': ' + sprite.position.x)
     } else {
+      let diff = {
+        x: position.x - position.previous.x,
+        y: position.y - position.previous.y
+      }
+
       sprite.position.x = position.previous.x + (diff.x * percent)
       sprite.position.y = position.previous.y + (diff.y * percent)
     }

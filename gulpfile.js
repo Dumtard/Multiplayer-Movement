@@ -2,6 +2,7 @@ var gulp = require('gulp')
 var webserver = require('gulp-webserver')
 var runSequence = require('run-sequence')
 var standard = require('gulp-standard')
+var rsync = require('gulp-rsync')
 var webpack = require('webpack')
 var webpackStream = require('webpack-stream')
 var spawn = require('child_process').spawn
@@ -70,10 +71,10 @@ gulp.task('watch', function () {
 
 gulp.task('serve', function () {
   return gulp.src('./build')
-  .pipe(webserver({
-    livereload: true,
-    open: false
-  }))
+    .pipe(webserver({
+      livereload: true,
+      open: false
+    }))
 })
 
 gulp.task('client', function (cb) {
@@ -90,6 +91,17 @@ gulp.task('server', function (cb) {
   })
 
   runSequence('lint', 'node', cb)
+})
+
+gulp.task('push', function (cb) {
+  return gulp.src('./build')
+    .pipe(rsync({
+      root: 'build/',
+      host: 'dumtard.com',
+      user: 'charles',
+      // destination: '/srv/http/public/dumtard/test/games'
+      destination: '~'
+    }))
 })
 
 gulp.task('default', function (cb) {
